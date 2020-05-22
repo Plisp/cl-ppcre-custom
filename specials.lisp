@@ -59,16 +59,11 @@ occur in character classes.  Change this value BEFORE creating
 scanners if you don't need the \(full) Unicode support of
 implementations like AllegroCL, CLISP, LispWorks, or SBCL.")
 (declaim (fixnum *regex-char-code-limit*))
-  
-(defvar *string* (make-sequence #+:lispworks 'lw:simple-text-string
-                                #-:lispworks 'simple-string
-                                0)
-  "The string which is currently scanned by SCAN.
-Will always be coerced to a SIMPLE-STRING.")
-#+:lispworks
-(declaim (lw:simple-text-string *string*))
-#-:lispworks
-(declaim (simple-string *string*))
+
+(defvar *string*)
+
+(declaim (type function *accessor*))
+(defvar *accessor*)
 
 (defvar *start-pos* 0
   "Where to start scanning within *STRING*.")

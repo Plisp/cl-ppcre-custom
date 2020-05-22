@@ -210,7 +210,7 @@ modify its first argument \(but only if it's a parse tree)."))
                    :single-line single-line-mode
                    :return :index))
 
-(defgeneric scan (regex target-string &key start end real-start-pos)
+(defgeneric scan (regex target-string &key start end accessor real-start-pos)
   (:documentation "Searches TARGET-STRING from START to END and tries
 to match REGEX.  On success returns four values - the start of the
 match, the end of the match, and two arrays denoting the beginnings
@@ -225,41 +225,44 @@ internal purposes."))
 (defmethod scan ((regex-string string) target-string
                                        &key (start 0)
                                             (end (length target-string))
+                                            (accessor #'schar)
                                             ((:real-start-pos *real-start-pos*) nil))
   (declare #.*standard-optimize-settings*)
   ;; note that the scanners are optimized for simple strings so we
   ;; have to coerce TARGET-STRING into one if it isn't already
   (funcall (create-scanner regex-string)
            (maybe-coerce-to-simple-string target-string)
-           start end))
+           start end accessor))
 
 #-:use-acl-regexp2-engine
 (defmethod scan ((scanner function) target-string
-                                    &key (start 0)
-                                         (end (length target-string))
-                                         ((:real-start-pos *real-start-pos*) nil))
+                 &key (start 0)
+                   (end (length target-string))
+                   (accessor #'schar)
+                   ((:real-start-pos *real-start-pos*) nil))
   (declare #.*standard-optimize-settings*)
   (funcall scanner
            (maybe-coerce-to-simple-string target-string)
-           start end))
+           start end accessor))
 
 #-:use-acl-regexp2-engine
 (defmethod scan ((parse-tree t) target-string
-                                &key (start 0)
-                                     (end (length target-string))
-                                     ((:real-start-pos *real-start-pos*) nil))
+                 &key (start 0)
+                   (end (length target-string))
+                   (accessor #'schar)
+                   ((:real-start-pos *real-start-pos*) nil))
   (declare #.*standard-optimize-settings*)
   (funcall (create-scanner parse-tree)
            (maybe-coerce-to-simple-string target-string)
-           start end))
+           start end accessor))
 
 #+:use-acl-regexp2-engine
 (declaim (inline scan))
 #+:use-acl-regexp2-engine
 (defmethod scan ((parse-tree t) target-string
-                                &key (start 0)
-                                     (end (length target-string))
-                                     ((:real-start-pos *real-start-pos*) nil))
+                 &key (start 0)
+                   (end (length target-string))
+                   ((:real-start-pos *real-start-pos*) nil))
   (declare #.*standard-optimize-settings*)
   (when (< end start)
     (return-from scan nil))
@@ -369,7 +372,7 @@ substrings may share structure with TARGET-STRING."
 (defmacro do-scans ((match-start match-end reg-starts reg-ends regex
                                  target-string
                                  &optional result-form
-                                 &key start end)
+                                 &key start end accessor)
                     &body body
                     &environment env)
   "Iterates over TARGET-STRING and tries to match REGEX as often as
@@ -381,12 +384,13 @@ terminate the loop immediately.  If REGEX matches an empty string the
 scan is continued one position behind this match. BODY may start with
 declarations."
   (with-rebinding (target-string)
-    (with-unique-names (%start %end %regex scanner)
+    (with-unique-names (%start %end %regex %accessor scanner)
       (declare (ignorable %regex scanner))
       ;; the NIL BLOCK to enable exits via (RETURN ...)
       `(block nil
          (let* ((,%start (or ,start 0))
                 (,%end (or ,end (length ,target-string)))
+                (,%accessor (or ,accessor #'schar))
                 ,@(unless (constantp regex env)
                     ;; leave constant regular expressions as they are -
                     ;; SCAN's compiler macro will take care of them;
@@ -408,7 +412,7 @@ declarations."
                 (,match-start ,match-end ,reg-starts ,reg-ends)
                 (scan ,(cond ((constantp regex env) regex)
                              (t scanner))
-                      ,target-string :start ,%start :end ,%end
+                      ,target-string :start ,%start :end ,%end :accessor ,%accessor
                       :real-start-pos (or ,start 0))
               ;; declare the variables to be IGNORABLE to prevent the
               ;; compiler from issuing warnings

@@ -173,9 +173,9 @@ of REPETITION is of fixed length and doesn't contain registers."))
                     (let ((chr (schar str 0)))
                       (if (case-insensitive-p regex)
                         (greedy-constant-length-closure
-                         (char-equal chr (schar *string* curr-pos)))
+                         (char-equal chr (funcall *accessor* *string* curr-pos)))
                         (greedy-constant-length-closure
-                         (char= chr (schar *string* curr-pos)))))
+                         (char= chr (funcall *accessor* *string* curr-pos)))))
                     ;; a string
                     (if (case-insensitive-p regex)
                       (greedy-constant-length-closure
@@ -184,7 +184,7 @@ of REPETITION is of fixed length and doesn't contain registers."))
                        (*string*= str curr-pos (+ curr-pos len) 0 len))))))
               (char-class
                 ;; a character class
-                (insert-char-class-tester (regex (schar *string* curr-pos))
+                (insert-char-class-tester (regex (funcall *accessor* *string* curr-pos))
                   (greedy-constant-length-closure
                    (char-class-test))))
               (everything
@@ -192,7 +192,7 @@ of REPETITION is of fixed length and doesn't contain registers."))
                 (if (single-line-p regex)
                   (create-greedy-everything-matcher maximum min-rest next-fn)
                   (greedy-constant-length-closure
-                   (char/= #\Newline (schar *string* curr-pos)))))
+                   (char/= #\Newline (funcall *accessor* *string* curr-pos)))))
               (t
                 ;; the general case - we build an inner matcher which
                 ;; just checks for immediate success, i.e. NEXT-FN is
@@ -423,9 +423,9 @@ of REPETITION is of fixed length and doesn't contain registers."))
                     (let ((chr (schar str 0)))
                       (if (case-insensitive-p regex)
                         (non-greedy-constant-length-closure
-                         (char-equal chr (schar *string* curr-pos)))
+                         (char-equal chr (funcall *accessor* *string* curr-pos)))
                         (non-greedy-constant-length-closure
-                         (char= chr (schar *string* curr-pos)))))
+                         (char= chr (funcall *accessor* *string* curr-pos)))))
                     ;; a string
                     (if (case-insensitive-p regex)
                       (non-greedy-constant-length-closure
@@ -434,7 +434,7 @@ of REPETITION is of fixed length and doesn't contain registers."))
                        (*string*= str curr-pos (+ curr-pos len) 0 len))))))
               (char-class
                 ;; a character class
-                (insert-char-class-tester (regex (schar *string* curr-pos))
+                (insert-char-class-tester (regex (funcall *accessor* *string* curr-pos))
                   (non-greedy-constant-length-closure
                    (char-class-test))))
               (everything
@@ -445,7 +445,7 @@ of REPETITION is of fixed length and doesn't contain registers."))
                    t)
                   ;; a dot which has to watch out for #\Newline
                   (non-greedy-constant-length-closure
-                   (char/= #\Newline (schar *string* curr-pos)))))
+                   (char/= #\Newline (funcall *accessor* *string* curr-pos)))))
               (t
                 ;; the general case - we build an inner matcher which
                 ;; just checks for immediate success, i.e. NEXT-FN is
@@ -660,10 +660,10 @@ fixed length and doesn't contain registers."))
               (let ((chr (schar str 0)))
                 (if (case-insensitive-p regex)
                   (constant-repetition-constant-length-closure
-                   (and (char-equal chr (schar *string* curr-pos))
+                   (and (char-equal chr (funcall *accessor* *string* curr-pos))
                         (1+ curr-pos)))
                   (constant-repetition-constant-length-closure
-                   (and (char= chr (schar *string* curr-pos))
+                   (and (char= chr (funcall *accessor* *string* curr-pos))
                         (1+ curr-pos)))))
               ;; a string
               (if (case-insensitive-p regex)
@@ -679,7 +679,7 @@ fixed length and doesn't contain registers."))
                         next-pos)))))))
         (char-class
           ;; a character class
-          (insert-char-class-tester (regex (schar *string* curr-pos))
+          (insert-char-class-tester (regex (funcall *accessor* *string* curr-pos))
             (constant-repetition-constant-length-closure
              (and (char-class-test)
                   (1+ curr-pos)))))
@@ -697,7 +697,7 @@ fixed length and doesn't contain registers."))
             ;; a dot which is not in single-line-mode - make sure we
             ;; don't match #\Newline
             (constant-repetition-constant-length-closure
-             (and (char/= #\Newline (schar *string* curr-pos))
+             (and (char/= #\Newline (funcall *accessor* *string* curr-pos))
                   (1+ curr-pos)))))
         (t
           ;; the general case - we build an inner matcher which just

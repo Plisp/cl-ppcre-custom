@@ -41,7 +41,7 @@ boundary check - this has to be implemented by the caller."
   (declare (fixnum start1 end1 start2 end2))
   (loop for string1-idx of-type fixnum from start1 below end1
         for string2-idx of-type fixnum from start2 below end2
-        always (char= (schar *string* string1-idx)
+        always (char= (funcall *accessor* *string* string1-idx)
                       (schar string2 string2-idx))))
 
 (defun *string*-equal (string2 start1 end1 start2 end2)
@@ -52,7 +52,7 @@ boundary check - this has to be implemented by the caller."
   (declare (fixnum start1 end1 start2 end2))
   (loop for string1-idx of-type fixnum from start1 below end1
         for string2-idx of-type fixnum from start2 below end2
-        always (char-equal (schar *string* string1-idx)
+        always (char-equal (funcall *accessor* *string* string1-idx)
                            (schar string2 string2-idx))))
 
 (defgeneric create-matcher-aux (regex next-fn)
@@ -182,7 +182,7 @@ against CHR-EXPR."
   (declare #.*standard-optimize-settings*)
   (declare (function next-fn))
   ;; insert a test against the current character within *STRING*
-  (insert-char-class-tester (char-class (schar *string* start-pos))
+  (insert-char-class-tester (char-class (funcall *accessor* *string* start-pos))
     (lambda (start-pos)
       (declare (fixnum start-pos))
       (and (< start-pos *end-pos*)
@@ -251,7 +251,7 @@ against CHR-EXPR."
             (lambda (start-pos)
               (declare (fixnum start-pos))
               (and (< start-pos *end-pos*)
-                   (char-equal (schar *string* start-pos) chr)
+                   (char-equal (funcall *accessor* *string* start-pos) chr)
                    (funcall next-fn (1+ start-pos)))))
           ((= len 1)
             ;; STR represent exactly one character; case-sensitive
@@ -259,7 +259,7 @@ against CHR-EXPR."
             (lambda (start-pos)
               (declare (fixnum start-pos))
               (and (< start-pos *end-pos*)
-                   (char= (schar *string* start-pos) chr)
+                   (char= (funcall *accessor* *string* start-pos) chr)
                    (funcall next-fn (1+ start-pos)))))
           (case-insensitive-p
             ;; general case, case-insensitive version
@@ -291,17 +291,17 @@ against CHR-EXPR."
     ;; the character at START-POS isn't...
     (or (and (or (= start-pos *end-pos*)
                  (and (< start-pos *end-pos*)
-                      (not (word-char-p (schar *string* start-pos)))))
+                      (not (word-char-p (funcall *accessor* *string* start-pos)))))
              (and (< 1-start-pos *end-pos*)
                   (<= *start-pos* 1-start-pos)
-                  (word-char-p (schar *string* 1-start-pos))))
+                  (word-char-p (funcall *accessor* *string* 1-start-pos))))
         ;; ...or vice versa
         (and (or (= start-pos *start-pos*)
                  (and (< 1-start-pos *end-pos*)
                       (<= *start-pos* 1-start-pos)
-                      (not (word-char-p (schar *string* 1-start-pos)))))
+                      (not (word-char-p (funcall *accessor* *string* 1-start-pos)))))
              (and (< start-pos *end-pos*)
-                  (word-char-p (schar *string* start-pos)))))))
+                  (word-char-p (funcall *accessor* *string* start-pos)))))))
 
 (defmethod create-matcher-aux ((word-boundary word-boundary) next-fn)
   (declare #.*standard-optimize-settings*)
@@ -329,7 +329,7 @@ against CHR-EXPR."
     (lambda (start-pos)
       (declare (fixnum start-pos))
       (and (< start-pos *end-pos*)
-           (char/= (schar *string* start-pos) #\Newline)
+           (char/= (funcall *accessor* *string* start-pos) #\Newline)
            (funcall next-fn (1+ start-pos))))))
 
 (defmethod create-matcher-aux ((anchor anchor) next-fn)
@@ -355,7 +355,7 @@ against CHR-EXPR."
                          (and (<= start-pos *end-pos*)
                               (> start-pos *start-pos*)
                               (char= #\Newline
-                                     (schar *string* (1- start-pos)))))
+                                     (funcall *accessor* *string* (1- start-pos)))))
                      (funcall next-fn start-pos)))))
           (startp
             ;; a start-anchor which is not in multi-line-mode, so just
@@ -373,7 +373,7 @@ against CHR-EXPR."
               (and (or (= start-pos *end-pos*)
                        (and (< start-pos *end-pos*)
                             (char= #\Newline
-                                   (schar *string* start-pos))))
+                                   (funcall *accessor* *string* start-pos))))
                    (funcall next-fn start-pos))))
           (t
             ;; an end-anchor which is not in multi-line-mode, so just
@@ -384,7 +384,7 @@ against CHR-EXPR."
               (and (or (= start-pos *end-pos*)
                        (and (= start-pos (1- *end-pos*))
                             (char= #\Newline
-                                   (schar *string* start-pos))))
+                                   (funcall *accessor* *string* start-pos))))
                    (funcall next-fn start-pos)))))))
 
 (defmethod create-matcher-aux ((back-reference back-reference) next-fn)

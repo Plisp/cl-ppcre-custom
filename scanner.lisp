@@ -42,12 +42,12 @@
          nil
          (loop named bmh-matcher
                for k of-type fixnum = (+ start-pos m -1)
-               then (+ k (max 1 (aref skip (char-code (schar *string* k)))))
+               then (+ k (max 1 (aref skip (char-code (funcall *accessor* *string* k)))))
                while (< k *end-pos*)
                do (loop for j of-type fixnum downfrom (1- m)
                         for i of-type fixnum downfrom k
                         while (and (>= j 0)
-                                   (,char-compare (schar *string* i)
+                                   (,char-compare (funcall *accessor* *string* i)
                                                   (schar pattern j)))
                         finally (if (minusp j)
                                   (return-from bmh-matcher (1+ i)))))))))
@@ -96,7 +96,7 @@ instead.  \(BMH matchers are faster but need much more space.)"
       (declare (fixnum start-pos))
       (and (not (minusp start-pos))
            (loop for i of-type fixnum from start-pos below *end-pos*
-                 thereis (and (,char-compare (schar *string* i) chr) i))))))
+                 thereis (and (,char-compare (funcall *accessor* *string* i) chr) i))))))
 
 (defun create-char-searcher (chr case-insensitive-p)
   "Returns a function which searches the (special) simple-string
@@ -119,7 +119,7 @@ a #\Newline."
   ;; START-POS) because we know we'll never call NEWLINE-SKIPPER on
   ;; the first iteration
   (loop for i of-type fixnum from (1- start-pos) below *end-pos*
-        thereis (and (char= (schar *string* i)
+        thereis (and (char= (funcall *accessor* *string* i)
                             #\Newline)
                      (1+ i))))
 
@@ -129,11 +129,12 @@ replacing '(ADVANCE-FN-DEFINITION) with a suitable definition for
 ADVANCE-FN.  This is a utility macro used by CREATE-SCANNER-AUX."
   (subst
    advance-fn '(advance-fn-definition)
-   '(lambda (string start end)
+   '(lambda (string start end accessor)
      (block scan
        ;; initialize a couple of special variables used by the
        ;; matchers (see file specials.lisp)
        (let* ((*string* string)
+              (*accessor* accessor)
               (*start-pos* start)
               (*end-pos* end)
               ;; we will search forward for END-STRING if this value
@@ -190,7 +191,7 @@ ADVANCE-FN.  This is a utility macro used by CREATE-SCANNER-AUX."
                                                        end-test-pos))
                  (when (and (= 1 (the fixnum end-anchored-p))
                             (> *end-pos* scan-start-pos)
-                            (char= #\Newline (schar *string* (1- *end-pos*))))
+                            (char= #\Newline (funcall *accessor* *string* (1- *end-pos*))))
                    ;; if we didn't find an end string candidate from
                    ;; END-TEST-POS and if a #\Newline at the end is
                    ;; allowed we try it again from one position to the

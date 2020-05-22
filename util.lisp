@@ -105,7 +105,7 @@ are discarded \(that is, the body is an implicit PROGN)."
                             `(let (,,@temps)
                               ,,@body))))))
 
-(declaim (inline digit-char-p))  
+(declaim (inline digit-char-p))
 (defun digit-char-p (chr)
   (declare #.*standard-optimize-settings*)
   "Tests whether a character is a decimal digit, i.e. the same as
@@ -113,7 +113,7 @@ Perl's [\\d].  Note that this function shadows the standard Common
 Lisp function CL:DIGIT-CHAR-P."
   (char<= #\0 chr #\9))
 
-(declaim (inline word-char-p))  
+(declaim (inline word-char-p))
 (defun word-char-p (chr)
   (declare #.*standard-optimize-settings*)
   "Tests whether a character is a \"word\" character.  In the ASCII
@@ -142,10 +142,11 @@ match [\\s] in Perl."
              #-:lispworks
              (simple-string-p ,=string=)
               ,=string=)
-            (t
+            ((stringp ,=string=)
              (coerce ,=string=
                      #+:lispworks 'lw:simple-text-string
-                     #-:lispworks 'simple-string))))))
+                     #-:lispworks 'simple-string))
+            (t ,=string=)))))
 
 (declaim (inline nsubseq))
 (defun nsubseq (sequence start &optional (end (length sequence)))
