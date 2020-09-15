@@ -81,7 +81,7 @@ implementations like AllegroCL, CLISP, LispWorks, or SBCL.")
   "An array which holds the start positions
 of the current register candidates.")
 (declaim (simple-vector *reg-starts*))
-  
+
 (defvar *regs-maybe-start* (make-array 0)
   "An array which holds the next start positions
 of the current register candidates.")
@@ -118,7 +118,7 @@ where we saw repetitive patterns.
 Only used for patterns which might have zero length.")
 (declaim (simple-vector *last-pos-stores*))
 
-(defvar *use-bmh-matchers* nil
+(defvar *use-bmh-matchers* t
   "Whether the scanners created by CREATE-SCANNER should use the \(fast
 but large) Boyer-Moore-Horspool matchers.")
 
@@ -164,4 +164,3 @@ intended to handle `character properties' like \\p{IsAlpha}.  If
     (cdr (assoc symbol
                 exported-symbols-alist
                 :test #'eq))))
-               
