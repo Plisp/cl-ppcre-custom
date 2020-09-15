@@ -118,7 +118,7 @@ where we saw repetitive patterns.
 Only used for patterns which might have zero length.")
 (declaim (simple-vector *last-pos-stores*))
 
-(defvar *use-bmh-matchers* t
+(defvar *use-bmh-matchers* nil
   "Whether the scanners created by CREATE-SCANNER should use the \(fast
 but large) Boyer-Moore-Horspool matchers.")
 
